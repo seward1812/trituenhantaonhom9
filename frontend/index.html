@@ -1,0 +1,327 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>RouteOpt | Delivery Optimization</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Leaflet -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+<div class="app-container">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+
+        <div class="brand">
+            <div class="brand-logo">
+                <span>R</span>
+            </div>
+
+            <div class="brand-info">
+                <h2>Route<span>Opt</span></h2>
+                <p>DELIVERY INTELLIGENCE</p>
+            </div>
+        </div>
+
+        <div class="sidebar-label">WORKSPACE</div>
+
+        <nav class="sidebar-nav">
+            <a href="#" class="nav-item active">
+                <span class="nav-icon">▦</span>
+                <span>Dashboard</span>
+            </a>
+
+            <a href="#map-section" class="nav-item">
+                <span class="nav-icon">⌖</span>
+                <span>Route Planning</span>
+            </a>
+
+            <a href="#comparison-section" class="nav-item">
+                <span class="nav-icon">▤</span>
+                <span>Analytics</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-label settings-label">OPTIMIZATION</div>
+
+        <div class="sidebar-settings">
+
+            <label for="algorithm-select">Optimization Algorithm</label>
+
+            <select id="algorithm-select">
+                <option value="nearest_neighbor">Nearest Neighbor</option>
+                <option value="two_opt">Nearest Neighbor + 2-opt</option>
+                <option value="nearest_insertion">Nearest Insertion</option>
+                <option value="farthest_insertion">Farthest Insertion</option>
+            </select>
+
+            <button id="optimize-btn" class="btn-primary">
+                <span>✦</span>
+                Optimize Route
+            </button>
+
+            <button id="clear-markers-btn" class="btn-secondary">
+                Clear All Points
+            </button>
+
+        </div>
+
+        <div class="sidebar-label points-label">DELIVERY LOCATIONS</div>
+
+        <div class="location-summary">
+            <span>Selected locations</span>
+            <span id="total-locations" class="location-count">0</span>
+        </div>
+
+        <div id="location-list" class="location-list">
+            <p class="empty-message">No delivery points yet.</p>
+        </div>
+
+        <div class="sidebar-bottom">
+            <div class="system-status">
+                <span class="online-dot"></span>
+                <span>System operational</span>
+            </div>
+
+            <p>RouteOpt v1.0.0</p>
+        </div>
+
+    </aside>
+
+
+    <!-- MAIN -->
+    <main class="main-content">
+
+        <!-- TOP HEADER -->
+        <header class="top-header">
+
+            <div class="page-heading">
+                <div class="breadcrumb">
+                    WORKSPACE <span>/</span> DASHBOARD
+                </div>
+
+                <h1>Delivery Dashboard</h1>
+
+                <p>Plan, optimize and monitor your delivery routes.</p>
+            </div>
+
+            <div class="header-actions">
+                <div class="system-badge">
+                    <span class="online-dot"></span>
+                    System Online
+                </div>
+
+                <div class="user-avatar">RO</div>
+            </div>
+
+        </header>
+
+
+        <!-- STATISTICS -->
+        <section class="statistics">
+
+            <div class="stat-card">
+                <div class="stat-top">
+                    <span class="stat-title">TOTAL LOCATIONS</span>
+                    <div class="stat-icon blue">⌖</div>
+                </div>
+
+                <div class="stat-value" id="total-locations-display">0</div>
+
+                <div class="stat-description">
+                    Delivery points selected
+                </div>
+            </div>
+
+
+            <div class="stat-card">
+                <div class="stat-top">
+                    <span class="stat-title">TOTAL DISTANCE</span>
+                    <div class="stat-icon purple">↗</div>
+                </div>
+
+                <div class="stat-value" id="total-distance">-- <small>km</small></div>
+
+                <div class="stat-description">
+                    Optimized route distance
+                </div>
+            </div>
+
+
+            <div class="stat-card">
+                <div class="stat-top">
+                    <span class="stat-title">IMPROVEMENT</span>
+                    <div class="stat-icon green">%</div>
+                </div>
+
+                <div class="stat-value" id="improvement">--%</div>
+
+                <div class="stat-description">
+                    Compared with baseline
+                </div>
+            </div>
+
+
+            <div class="stat-card">
+                <div class="stat-top">
+                    <span class="stat-title">ALGORITHM</span>
+                    <div class="stat-icon orange">✦</div>
+                </div>
+
+                <div class="stat-value algorithm-value">AI</div>
+
+                <div class="stat-description">
+                    Route optimization engine
+                </div>
+            </div>
+
+        </section>
+
+
+        <!-- MAP -->
+        <section class="content-card map-section" id="map-section">
+
+            <div class="section-header">
+
+                <div>
+                    <div class="section-title">
+                        <span class="section-indicator"></span>
+                        <h2>Live Delivery Map</h2>
+                    </div>
+
+                    <p>Click anywhere on the map to add a delivery location.</p>
+                </div>
+
+                <div class="map-legend">
+                    <span><i class="legend-dot blue-dot"></i> Delivery point</span>
+                    <span><i class="legend-dot green-dot"></i> Depot</span>
+                </div>
+
+            </div>
+
+            <div class="map-wrapper">
+                <div id="map" class="map-container"></div>
+
+                <div class="map-overlay-label">
+                    <span class="online-dot"></span>
+                    MAP VIEW
+                </div>
+            </div>
+
+            <div class="map-footer">
+                <div class="map-instruction">
+                    <span>ⓘ</span>
+                    Click on the map to add delivery points.
+                </div>
+
+                <div id="depot-address" class="depot-info">
+                    Depot: Not selected
+                </div>
+            </div>
+
+        </section>
+
+
+        <!-- STATUS -->
+        <section class="content-card status-section">
+
+            <div class="section-header">
+                <div>
+                    <div class="section-title">
+                        <span class="section-indicator purple-indicator"></span>
+                        <h2>Optimization Status</h2>
+                    </div>
+
+                    <p>Current route processing information.</p>
+                </div>
+            </div>
+
+            <div id="status-message" class="status-message">
+                <span class="status-message-icon">✦</span>
+                <span>System ready. Add delivery points to get started.</span>
+            </div>
+
+        </section>
+
+
+        <!-- COMPARISON -->
+        <section class="content-card comparison-section" id="comparison-section">
+
+            <div class="section-header">
+
+                <div>
+                    <div class="section-title">
+                        <span class="section-indicator green-indicator"></span>
+                        <h2>Algorithm Comparison</h2>
+                    </div>
+
+                    <p>Compare route optimization performance.</p>
+                </div>
+
+                <div class="comparison-tag">
+                    PERFORMANCE ANALYSIS
+                </div>
+
+            </div>
+
+            <div class="table-container">
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ALGORITHM</th>
+                            <th>TOTAL DISTANCE</th>
+                            <th>EXECUTION TIME</th>
+                            <th>IMPROVEMENT</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="comparison-body">
+                        <tr>
+                            <td colspan="4" class="empty-table">
+                                No comparison data available yet.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+            </div>
+
+        </section>
+
+
+        <!-- FOOTER -->
+        <footer class="main-footer">
+            <span>© 2026 RouteOpt. All rights reserved.</span>
+            <span>AI-Powered Delivery Route Optimization</span>
+        </footer>
+
+    </main>
+
+</div>
+
+
+<!-- LEAFLET JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<!-- APP JS -->
+<script src="js/map.js"></script>
+<script src="js/dashboard.js"></script>
+<script src="js/app.js"></script>
+
+</body>
+</html>
