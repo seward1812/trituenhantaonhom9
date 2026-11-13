@@ -60,6 +60,12 @@
 
         <div class="sidebar-settings">
 
+            <label for="mode-select">Problem type</label>
+            <select id="mode-select">
+                <option value="tsp">TSP (single vehicle)</option>
+                <option value="cvrp">CVRP (multiple vehicles)</option>
+            </select>
+
             <label for="algorithm-select">Optimization Algorithm</label>
 
             <select id="algorithm-select">
@@ -67,7 +73,20 @@
                 <option value="two_opt">Nearest Neighbor + 2-opt</option>
                 <option value="nearest_insertion">Nearest Insertion</option>
                 <option value="farthest_insertion">Farthest Insertion</option>
+                <option value="all">Compare all algorithms</option>
             </select>
+
+            <div id="cvrp-controls" class="cvrp-controls" hidden>
+                <label for="map-mode-select">Map click mode</label>
+                <select id="map-mode-select">
+                    <option value="delivery">Add delivery</option>
+                    <option value="depot">Set depot</option>
+                </select>
+                <label for="capacity-input">Vehicle capacity</label>
+                <input id="capacity-input" type="number" min="1" step="1" value="10">
+                <label for="vehicle-count-input">Vehicle count (optional)</label>
+                <input id="vehicle-count-input" type="number" min="1" step="1" placeholder="Unlimited">
+            </div>
 
             <button id="optimize-btn" class="btn-primary">
                 <span>✦</span>
@@ -159,6 +178,7 @@
                 <div class="stat-description">
                     Optimized route distance
                 </div>
+                <div id="route-duration" class="stat-description">-- phút</div>
             </div>
 
 

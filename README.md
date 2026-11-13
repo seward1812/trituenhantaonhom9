@@ -1,72 +1,108 @@
-# trituenhantaonhom9
+# RouteOpt
 
-Mục tiêu dự án
-Xây dựng mô hình dữ liệu gồm kho hàng và các địa điểm giao hàng.
-Tính toán khoảng cách giữa các địa điểm.
-Xây dựng ma trận khoảng cách phục vụ quá trình tìm kiếm.
-Nghiên cứu và áp dụng các thuật toán AI để tối ưu hóa lộ trình.
-Đánh giá, so sánh hiệu quả giữa các thuật toán.
-Trực quan hóa lộ trình để người dùng dễ dàng theo dõi kết quả.
+RouteOpt cung cấp hai luồng tối ưu tuyến:
 
-1. Clone repository
+- **TSP legacy**: một xe, tọa độ `[latitude, longitude]`, khoảng cách Haversine/OSRM.
+- **CVRP**: nhiều xe, depot, demand và capacity; solver trả nhiều route đóng tại depot.
 
-git clone https://github.com/seward1812/trituenhantaonhom9.git
-cd trituenhantaonhom9
+## Cài đặt
 
-2. Kiểm tra dữ liệu địa điểm
+Yêu cầu Python 3.10+.
 
-Dự án hiện sử dụng 7 địa điểm, bao gồm:
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
 
-1 điểm xuất phát (Depot).
+## CLI TSP legacy
 
-6 địa điểm giao hàng.
+```bash
+python3 main.py --json --algorithm two_opt
+python3 main.py --input points.json --algorithm all --json
+```
 
-Dữ liệu được lưu trong data/locations.py.
+Schema legacy:
 
-3. Chạy thử chương trình tính khoảng cách
+```json
+{
+  "points": [[16.0471, 108.2068], [16.06, 108.22]],
+  "depot": 0
+}
+```
 
-Mở Terminal tại thư mục gốc của dự án và chạy:
+## CLI CVRP
 
-python -c "from data.locations import locations; from algorithms.distance import create_distance_matrix; print(create_distan
+CVRP file dùng tọa độ phẳng `x/y`, không phải latitude/longitude. Depot luôn là node đầu tiên.
 
-Chuẩn bị trước khi demo
-Dự án: trituenhantaonhom9
+```bash
+python3 data/duannhom.py --mssv 123456 --customers 20 --output data/instance.json
+python3 main.py --cvrp-input data/instance.json --cvrp-algorithm all
+```
 
-Cấu trúc thư mục chính:
-trituenhantaonhom9/
-│
-├── algorithms/
-│   ├── distance.py
-│   ├── nearest_neighbor.py
-│   └── two_opt.py
-│
-├── data/
-│   └── locations.py
-│
-├── evaluation/
-│
-├── visualization/
-│
-├── main.py
-└── README.md
+Schema CVRP:
 
-4. DEMO
-Trong PowerShell, nhập:
-cd .\trituenhantaonhom9-main
-cd .\trituenhantaonhom9
+```json
+{
+  "name": "example",
+  "depot_index": 0,
+  "capacity": 10,
+  "nodes": [
+    {"id": 0, "x": 50, "y": 50, "demand": 0},
+    {"id": 1, "x": 12, "y": 20, "demand": 4}
+  ]
+}
+```
 
-Kiểm tra bạn đang ở đúng thư mục dự án chạy:
-pwd
+Kết quả CVRP gồm `routes`, `loads` và `distance`. Giá trị route là positional index trong mảng `nodes`; `node_ids` được trả riêng trong envelope CLI.
 
-Kiểm tra cấu trúc thư mục:
-tree /F
+## Backend và giao diện
 
-Chạy file main.py:
-python main.py
+Terminal 1:
 
-Kiểm tra thuật toán Nearest Neighbor
-python -c "from data.locations import locations; from algorithms.distance import create_distance_matrix; from algorithms.nearest_neighbor import nearest_neighbor; matrix = create_distance_matrix(locations); route = nearest_neighbor(matrix); total = sum(matrix[route[i]][route[i+1]] for i in range(len(route)-1)); print('LO TRINH:', route); print('TONG KHOANG CACH:', round(total, 2))"
+```bash
+python3 backend/app.py
+```
 
-Chạy toàn bộ chương trình
-python main.py
+Terminal 2:
 
+```bash
+python3 -m http.server 8000 --directory frontend
+```
+
+Mở `http://127.0.0.1:8000`. Backend cần Internet để gọi OSRM public service.
+
+Trong giao diện:
+
+1. Chọn `CVRP (multiple vehicles)`.
+2. Chọn `Set depot` rồi click một vị trí trên bản đồ.
+3. Chọn `Add delivery`, click các khách hàng và chỉnh demand.
+4. Nhập capacity, số xe tùy chọn và chạy tối ưu.
+
+API CVRP nhận:
+
+```json
+{
+  "mode": "cvrp",
+  "depot": [16.0471, 108.2068],
+  "points": [[16.06, 108.22], [16.08, 108.24]],
+  "demands": [3, 4],
+  "capacity": 5,
+  "vehicle_count": 2,
+  "algorithm": "nearest_neighbor"
+}
+```
+
+API TSP cũ vẫn nhận `{ "points": [...], "algorithm": "two_opt" }` và giữ response legacy.
+
+## Kiểm thử
+
+```bash
+python3 -m pytest -q
+python3 -m py_compile main.py backend/app.py data/duannhom.py algorithms/*_cvrp.py
+node --check frontend/js/map.js
+node --check frontend/js/dashboard.js
+node --check frontend/js/app.js
+```
+
+API tests mock OSRM, vì vậy test tự động không phụ thuộc mạng bên ngoài.
