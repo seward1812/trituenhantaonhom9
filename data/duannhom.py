@@ -46,6 +46,38 @@ class CVRPInstance:
             for x1, y1 in self.coordinates
         ]
 
+    @classmethod
+    def from_dict(cls, payload: dict) -> "CVRPInstance":
+        if not isinstance(payload, dict):
+            raise ValueError("CVRP data must be a JSON object.")
+        nodes = payload.get("nodes")
+        if not isinstance(nodes, list) or not nodes:
+            raise ValueError("CVRP data must contain a non-empty nodes list.")
+        if payload.get("depot_index", 0) != 0:
+            raise ValueError("The depot must be stored at index 0.")
+        try:
+            parsed_nodes = []
+            for node in nodes:
+                if not isinstance(node, dict):
+                    raise ValueError("Each CVRP node must be an object.")
+                parsed_nodes.append(
+                    (
+                        int(node["id"]),
+                        (float(node["x"]), float(node["y"])),
+                        int(node["demand"]),
+                    )
+                )
+            capacity = int(payload["capacity"])
+        except (KeyError, TypeError, ValueError) as error:
+            raise ValueError("CVRP nodes and capacity must contain valid numbers.") from error
+        return cls(
+            name=str(payload.get("name", "cvrp_instance")),
+            node_ids=[node[0] for node in parsed_nodes],
+            coordinates=[node[1] for node in parsed_nodes],
+            demands=[node[2] for node in parsed_nodes],
+            capacity=capacity,
+        )
+
     def to_dict(self) -> dict:
         return {
             "name": self.name,
@@ -166,6 +198,12 @@ def load_cvrplib(path: str | Path) -> CVRPInstance:
         demands=[demands[node_id] for node_id in ordered_ids],
         capacity=capacity,
     )
+
+
+def load_json(path: str | Path) -> CVRPInstance:
+    source = Path(path)
+    with source.open("r", encoding="utf-8") as file:
+        return CVRPInstance.from_dict(json.load(file))
 
 
 def save_json(instance: CVRPInstance, output_path: str | Path) -> None:
