@@ -95,6 +95,23 @@ API CVRP nhận:
 
 API TSP cũ vẫn nhận `{ "points": [...], "algorithm": "two_opt" }` và giữ response legacy.
 
+## Trực quan hóa và so sánh Heuristic (plot_route.py)
+
+Dùng để trực quan hóa lộ trình các xe và so sánh định lượng các thuật toán heuristic (Nearest Neighbor vs 2-Opt cải tiến, Nearest/Farthest Insertion) theo đúng yêu cầu đề tài:
+
+```bash
+# Chạy sinh dữ liệu mẫu theo MSSV
+python3 visualization/plot_route.py --mssv 22110001 --customers 20
+
+# Hoặc chạy với file CVRP cụ thể
+python3 visualization/plot_route.py --cvrp-input data/instance.json
+```
+
+Kết quả xuất ra:
+- `visualization/route_visualization.html`: Giao diện tương tác Plotly (zoom, pan, hover thông tin khách hàng/xe/quãng đường).
+- `visualization/route_comparison.png`: Ảnh biểu đồ tĩnh chất lượng cao (phù hợp chèn vào báo cáo Word hoặc slide).
+- Bảng so sánh định lượng quãng đường và phần trăm cải thiện (%) hiển thị trên Terminal.
+
 ## Kiểm thử
 
 ```bash
