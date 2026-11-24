@@ -2,11 +2,12 @@
 import math
 
 
+EARTH_RADIUS = 6371.0
+
+
 def calculate_distance(point_a, point_b):
     lat1, lon1 = point_a
     lat2, lon2 = point_b
-
-    radius = 6371
 
     lat1 = math.radians(lat1)
     lon1 = math.radians(lon1)
@@ -24,7 +25,7 @@ def calculate_distance(point_a, point_b):
 
     c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
 
-    return radius * c
+    return EARTH_RADIUS * c
 
 
 def create_distance_matrix(locations):
@@ -35,6 +36,18 @@ def create_distance_matrix(locations):
 
     if len(points) == 0:
         raise ValueError("Danh sach dia diem khong duoc rong")
+
+    for point in points:
+        if len(point) != 2:
+            raise ValueError("Moi dia diem phai co vi do va kinh do")
+
+        lat, lon = point
+
+        if not (-90 <= lat <= 90):
+            raise ValueError("Vi do khong hop le")
+
+        if not (-180 <= lon <= 180):
+            raise ValueError("Kinh do khong hop le")
 
     n = len(points)
     matrix = []
